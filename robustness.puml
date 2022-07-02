@@ -1,0 +1,66 @@
+@startuml robustness
+
+usecase 書籍詳細を表示する
+
+actor 顧客 as a_client
+actor モデレーター as a_modeleter
+
+boundary 書籍詳細画面 as b_book_detail
+boundary 書籍レビュー記入画面 as b_review_input
+boundary 書籍レビュー確認画面 as b_review_check
+boundary ログイン画面 as b_login
+boundary レビューを書くボタン as b_review_write
+
+control 表示する as c_open_review_input
+control 表示する as c_open_review_check
+control レビューを書くボタンをクリックする as c_click_review_button
+control 書籍レビューを入力する as c_input_review
+control 書籍評価を1から5の間で指定する as c_input_evaluation
+control 送信ボタンをクリックする as c_click_send_button
+control 書籍レビューが短すぎないか as c_validate_review_length
+control 書籍評価が1から5の間であるか as c_validate_evaluation_range
+control 書籍レビューを送信する as c_send_review
+
+control 表示する as c_open_login
+control ログインしているか as c_validate_login
+control ログイン処理 as c_login
+
+control 書籍レビューが長すぎるエラーを表示する as c_show_review_too_long_error
+control 書籍レビューが短すぎるエラーを表示する as c_show_review_too_short_error
+
+entity 書籍 as e_book
+entity 書籍レビュー as e_review
+
+a_client --> b_review_write: クリック
+a_client --> b_book_detail
+
+b_book_detail <-- e_book
+' b_book_detail --> c_click_review_button
+c_validate_login --> c_click_review_button: OK
+
+c_click_review_button --> c_open_review_input
+c_open_review_input --> b_review_input
+b_review_input --> c_input_review
+c_input_review --> c_input_evaluation
+c_input_evaluation --> c_click_send_button
+c_click_send_button --> c_validate_review_length
+c_validate_review_length --> c_validate_evaluation_range: OK
+
+c_validate_evaluation_range --> c_open_review_check: OK
+c_open_review_check --> b_review_check
+
+c_validate_evaluation_range --> c_send_review: OK
+c_send_review --> a_modeleter
+
+b_book_detail --> c_validate_login
+c_validate_login --> c_open_login: NG
+c_open_login --> b_login
+b_login --> c_login
+c_login --> b_book_detail: OK
+
+c_validate_review_length --> c_show_review_too_long_error: 1MBより長い文章
+c_show_review_too_long_error --> c_open_review_input
+c_validate_review_length --> c_show_review_too_short_error: 10文字未満の文章
+c_show_review_too_short_error --> c_open_review_input
+
+@enduml
